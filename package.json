@@ -30,11 +30,6 @@
     "dist/"
   ],
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
     "./apple/client": {
       "types": "./dist/apple/client/index.d.ts",
       "import": "./dist/apple/client/index.js",
