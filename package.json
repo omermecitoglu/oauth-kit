@@ -50,6 +50,11 @@
       "import": "./dist/apple/jwt/index.js",
       "require": "./dist/apple/jwt/index.cjs"
     },
+    "./apple/utils": {
+      "types": "./dist/apple/utils/index.d.ts",
+      "import": "./dist/apple/utils/index.js",
+      "require": "./dist/apple/utils/index.cjs"
+    },
     "./google/client": {
       "types": "./dist/google/client/index.d.ts",
       "import": "./dist/google/client/index.js",
