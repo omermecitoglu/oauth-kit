@@ -60,6 +60,11 @@
       "import": "./dist/google/access-token/index.js",
       "require": "./dist/google/access-token/index.cjs"
     },
+    "./google/api": {
+      "types": "./dist/google/api/index.d.ts",
+      "import": "./dist/google/api/index.js",
+      "require": "./dist/google/api/index.cjs"
+    },
     "./utils": {
       "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils/index.js",
