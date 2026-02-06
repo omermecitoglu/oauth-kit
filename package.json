@@ -35,6 +35,11 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./apple/client": {
+      "types": "./dist/apple/client/index.d.ts",
+      "import": "./dist/apple/client/index.js",
+      "require": "./dist/apple/client/index.cjs"
+    },
     "./google/client": {
       "types": "./dist/google/client/index.d.ts",
       "import": "./dist/google/client/index.js",
