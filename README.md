@@ -8,6 +8,16 @@
 [![GitHub issues](https://img.shields.io/github/issues/omermecitoglu/oauth-kit?color=a38eed&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2Ij4KICA8cGF0aCBkPSJNOCA5LjVhMS41IDEuNSAwIDEgMCAwLTMgMS41IDEuNSAwIDAgMCAwIDNaIiBmaWxsPSIjQTM4RUVEIj48L3BhdGg+CiAgPHBhdGggZD0iTTggMGE4IDggMCAxIDEgMCAxNkE4IDggMCAwIDEgOCAwWk0xLjUgOGE2LjUgNi41IDAgMSAwIDEzIDAgNi41IDYuNSAwIDAgMC0xMyAwWiIgZmlsbD0iI0EzOEVFRCI+PC9wYXRoPgo8L3N2Zz4=)](https://github.com/omermecitoglu/oauth-kit/issues)
 [![GitHub stars](https://img.shields.io/github/stars/omermecitoglu/oauth-kit?style=social)](https://github.com/omermecitoglu/oauth-kit)
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Installation](#installation)
+- [How to use](#how-to-use)
+  - [Provide a url to redirect users to the OAuth provider's authentication page](#provide-a-url-to-redirect-users-to-the-oauth-providers-authentication-page)
+  - [How to use get user information (Apple) with a Next.js API route](#how-to-use-get-user-information-apple-with-a-nextjs-api-route)
+  - [How to use get user information (Google) with a Next.js API route](#how-to-use-get-user-information-google-with-a-nextjs-api-route)
+- [License](#license)
+
 ## Overview
 
 Server-side OAuth utilities for implementing multiple OAuth providers.
@@ -18,6 +28,122 @@ To install this package
 
 ```sh
 npm install @omer-x/oauth-kit
+```
+
+## How to use
+
+### Provide a url to redirect users to the OAuth provider's authentication page
+
+```typescript
+import { generateOAuthURL as loginWithAppleURL } from "@omer-x/oauth-kit/apple/client";
+import { generateOAuthURL as loginWithGoogleURL } from "@omer-x/oauth-kit/google/client";
+
+// process.env.GOOGLE_OAUTH_CLIENT_ID = your Google OAuth Client ID from Google Cloud Console
+// publicOrigin = public origin of your app e.g. "https://myapp.com"
+// callbackEndpoint = endpoint to handle the OAuth callback e.g. "/auth/google"
+// locale = locale code e.g. "en", "fr", "de"
+
+loginWithGoogleURL(process.env.GOOGLE_OAUTH_CLIENT_ID, publicOrigin, "/auth/google", locale);
+loginWithAppleURL(process.env.APPLE_OAUTH_CLIENT_ID, publicOrigin, "/auth/apple", locale);
+```
+
+### How to use get user information (Apple) with a Next.js API route
+
+```typescript
+import { createAccessToken } from "@omer-x/oauth-kit/apple/access-token";
+import { decodeIdToken, signClientSecret } from "@omer-x/oauth-kit/apple/jwt";
+import { parseOneTimeUserInfo } from "@omer-x/oauth-kit/apple/utils";
+import { decodeState } from "@omer-x/oauth-kit/utils";
+import { hasLocale } from "next-intl";
+import { routing } from "~/i18n/routing";
+
+export async function POST(request: Request) {
+  const [
+    formData,
+    publicOrigin, // public origin of your app e.g. "https://myapp.com"
+  ] = await Promise.all([
+    request.formData(),
+    getPublicOrigin(request.headers), // implement this function to get the public origin from request headers
+  ]);
+  const { pathname } = new URL(request.url);
+  const originURL = new URL(pathname, publicOrigin).toString();
+
+  const state = formData.get("state");
+  const code = formData.get("code");
+  const rawUserData = formData.get("user");
+
+  if (typeof code !== "string") throw new Error("Invalid code");
+  if (typeof state !== "string") throw new Error("Invalid state");
+
+  if (!process.env.APPLE_OAUTH_TEAM_ID) throw new Error("APPLE_OAUTH_TEAM_ID env is missing!");
+  if (!process.env.APPLE_OAUTH_CLIENT_ID) throw new Error("APPLE_OAUTH_CLIENT_ID env is missing!");
+  if (!process.env.APPLE_OAUTH_KEY_ID) throw new Error("APPLE_OAUTH_KEY_ID env is missing!");
+  if (!process.env.APPLE_OAUTH_PRIVATE_KEY) throw new Error("APPLE_OAUTH_PRIVATE_KEY env is missing!");
+
+  const { locale } = decodeState(state);
+  if (!hasLocale(routing.locales, locale)) throw new Error(`Unknown Locale (${locale})`);
+
+  const clientSecret = signClientSecret(
+    process.env.APPLE_OAUTH_TEAM_ID,
+    process.env.APPLE_OAUTH_CLIENT_ID,
+    process.env.APPLE_OAUTH_KEY_ID,
+    process.env.APPLE_OAUTH_PRIVATE_KEY,
+  );
+  const oauth = await createAccessToken(process.env.APPLE_OAUTH_CLIENT_ID, clientSecret, code, originURL);
+  const appleUser = decodeIdToken(oauth.id_token);
+  const appleUserInfo = parseOneTimeUserInfo(rawUserData); // Beware! they send this information only once, so use it wisely!
+
+  // apply your authentincation logic here, e.g. create or update user in your database
+  // then redirect the user to the app
+}
+```
+
+### How to use get user information (Google) with a Next.js API route
+
+```typescript
+import { createAccessToken } from "@omer-x/oauth-kit/google/access-token";
+import { getGoogleUser } from "@omer-x/oauth-kit/google/api";
+import { fetchUserPicture } from "@omer-x/oauth-kit/google/utils";
+import { decodeState } from "@omer-x/oauth-kit/utils";
+import { hasLocale } from "next-intl";
+import { routing } from "~/i18n/routing";
+
+export async function GET(request: Request) {
+  const [
+    publicOrigin, // public origin of your app e.g. "https://myapp.com"
+  ] = await Promise.all([
+    getPublicOrigin(request.headers), // implement this function to get the public origin from request headers
+  ]);
+  const { searchParams, pathname } = new URL(request.url);
+  const originURL = new URL(pathname, publicOrigin).toString();
+
+  const code = searchParams.get("code");
+  const state = searchParams.get("state");
+
+  if (typeof code !== "string") throw new Error("Invalid code");
+  if (typeof state !== "string") throw new Error("Invalid state");
+
+  if (!process.env.GOOGLE_OAUTH_CLIENT_ID) throw new Error("GOOGLE_OAUTH_CLIENT_ID env is missing!");
+  if (!process.env.GOOGLE_OAUTH_CLIENT_SECRET) throw new Error("GOOGLE_OAUTH_CLIENT_SECRET env is missing!");
+
+  const { locale } = decodeState(state);
+  if (!hasLocale(routing.locales, locale)) throw new Error(`Unknown Locale (${locale})`);
+
+  const oauth = await createAccessToken(
+    process.env.GOOGLE_OAUTH_CLIENT_ID,
+    process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+    code,
+    originURL,
+  );
+  const googleUser = await getGoogleUser(oauth.access_token);
+
+  // apply your authentincation logic here, e.g. create or update user in your database
+
+  // optional step: fetch user picture
+  const picture = await fetchUserPicture(googleUser.picture); // this is a File object, you can upload it to your storage service if you wish
+  
+  // then redirect the user to the app
+}
 ```
 
 ## License
