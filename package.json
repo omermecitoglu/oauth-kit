@@ -44,6 +44,11 @@
       "types": "./dist/google/client/index.d.ts",
       "import": "./dist/google/client/index.js",
       "require": "./dist/google/client/index.cjs"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js",
+      "require": "./dist/utils/index.cjs"
     }
   },
   "scripts": {
