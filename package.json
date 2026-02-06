@@ -45,6 +45,11 @@
       "import": "./dist/google/client/index.js",
       "require": "./dist/google/client/index.cjs"
     },
+    "./google/access-token": {
+      "types": "./dist/google/access-token/index.d.ts",
+      "import": "./dist/google/access-token/index.js",
+      "require": "./dist/google/access-token/index.cjs"
+    },
     "./utils": {
       "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils/index.js",
