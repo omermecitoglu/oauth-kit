@@ -40,6 +40,16 @@
       "import": "./dist/apple/client/index.js",
       "require": "./dist/apple/client/index.cjs"
     },
+    "./apple/access-token": {
+      "types": "./dist/apple/access-token/index.d.ts",
+      "import": "./dist/apple/access-token/index.js",
+      "require": "./dist/apple/access-token/index.cjs"
+    },
+    "./apple/jwt": {
+      "types": "./dist/apple/jwt/index.d.ts",
+      "import": "./dist/apple/jwt/index.js",
+      "require": "./dist/apple/jwt/index.cjs"
+    },
     "./google/client": {
       "types": "./dist/google/client/index.d.ts",
       "import": "./dist/google/client/index.js",
@@ -65,10 +75,11 @@
     "build": "tsup"
   },
   "dependencies": {
-    "react": "latest"
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
     "@omer-x/eslint-config": "^2.2.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.2.1",
     "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^9.39.2",
