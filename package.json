@@ -70,6 +70,11 @@
       "import": "./dist/google/api/index.js",
       "require": "./dist/google/api/index.cjs"
     },
+    "./google/utils": {
+      "types": "./dist/google/utils/index.d.ts",
+      "import": "./dist/google/utils/index.js",
+      "require": "./dist/google/utils/index.cjs"
+    },
     "./utils": {
       "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils/index.js",

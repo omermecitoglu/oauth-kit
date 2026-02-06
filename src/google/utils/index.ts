@@ -1,0 +1,1 @@
+export { fetchUserPicture } from "./fetchUserPicture";
