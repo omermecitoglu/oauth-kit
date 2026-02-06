@@ -1,3 +1,5 @@
+import { encodeState } from "../../utils/encodeState";
+
 export function generateOAuthURL(clientId: string, origin: string, callbackEndpoint: string, locale: string): string {
   const scopes = [
     "https://www.googleapis.com/auth/userinfo.email",
@@ -11,6 +13,9 @@ export function generateOAuthURL(clientId: string, origin: string, callbackEndpo
   url.searchParams.set("response_type", "code");
   url.searchParams.set("scope", scopes.join(" "));
   url.searchParams.set("access_type", "offline");
-  url.searchParams.set("state", [`code:${csrfState}`, `locale:${locale}`].join(";"));
+  url.searchParams.set("state", encodeState({
+    code: csrfState,
+    locale,
+  }));
   return url.toString();
 }
